@@ -8,7 +8,8 @@ import {
 import { formatKm } from "../utils/distance.js";
 import { userDisplayName } from "../utils/display.js";
 import { isValidCoordinates } from "../utils/geo.js";
-import { signMapViewPayload } from "../utils/mapViewToken.js";
+import { buildMapPageUrl } from "../utils/mapViewToken.js";
+import { Markup } from "telegraf";
 import type { MotobroContext } from "../types/bot.js";
 
 function clampRadiusKm(km: number, fallback: number): number {
@@ -72,27 +73,38 @@ export async function handleNear(ctx: MotobroContext): Promise<void> {
     groupId,
   });
 
+  const nearMapPayload = {
+    mode: "near" as const,
+    groupId,
+    requesterUserId: dbUser.id,
+    lat,
+    lng,
+    radiusKm,
+  };
+  const mapUrl = buildMapPageUrl(env.WEBHOOK_URL, nearMapPayload, env.TELEGRAM_WEBHOOK_SECRET);
+
   if (nearby.length === 0) {
-    await ctx.reply("Сейчас рядом с тобой никого нет (в выбранном радиусе).");
+    await ctx.reply(
+      [
+        "Сейчас рядом с тобой никого нет (в выбранном радиусе).",
+        "На карте — ты и круг поиска:",
+        mapUrl,
+      ].join("\n"),
+      Markup.inlineKeyboard([[Markup.button.url("🗺 Карта (ты и радиус)", mapUrl)]]),
+    );
     return;
   }
 
   const lines = nearby.map((n) => `• ${userDisplayName(n.ride.user)} — ${formatKm(n.km)}`);
-  const mapToken = signMapViewPayload(
-    {
-      mode: "near",
-      groupId,
-      requesterUserId: dbUser.id,
-      lat,
-      lng,
-      radiusKm,
-    },
-    env.TELEGRAM_WEBHOOK_SECRET,
-  );
-  const base = env.WEBHOOK_URL.replace(/\/$/, "");
-  const mapUrl = `${base}/map/rides?t=${encodeURIComponent(mapToken)}`;
 
   await ctx.reply(
-    ["Рядом с тобой:", ...lines, "", `🗺 На карте (круг — твой радиус поиска, ~15 мин):`, mapUrl].join("\n"),
+    [
+      "Рядом с тобой:",
+      ...lines,
+      "",
+      "🗺 Карта: ты, круг радиуса и метки. Ссылка ~15 мин:",
+      mapUrl,
+    ].join("\n"),
+    Markup.inlineKeyboard([[Markup.button.url("🗺 Открыть карту", mapUrl)]]),
   );
 }

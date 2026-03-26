@@ -2,7 +2,8 @@ import { env } from "../config/env.js";
 import { upsertGroupFromChat } from "../services/group.service.js";
 import { listActiveRidesForGroup } from "../services/ride.service.js";
 import { userDisplayName } from "../utils/display.js";
-import { signMapViewPayload } from "../utils/mapViewToken.js";
+import { buildMapPageUrl } from "../utils/mapViewToken.js";
+import { Markup } from "telegraf";
 import type { MotobroContext } from "../types/bot.js";
 
 export async function handleWhere(ctx: MotobroContext): Promise<void> {
@@ -25,11 +26,16 @@ export async function handleWhere(ctx: MotobroContext): Promise<void> {
     return `• ${name} — ${zone}`;
   });
 
-  const mapToken = signMapViewPayload({ mode: "where", groupId }, env.TELEGRAM_WEBHOOK_SECRET);
-  const base = env.WEBHOOK_URL.replace(/\/$/, "");
-  const mapUrl = `${base}/map/rides?t=${encodeURIComponent(mapToken)}`;
+  const mapUrl = buildMapPageUrl(env.WEBHOOK_URL, { mode: "where", groupId }, env.TELEGRAM_WEBHOOK_SECRET);
 
   await ctx.reply(
-    ["Примерные районы:", ...lines, "", `🗺 На карте (откроется в браузере, ~15 мин):`, mapUrl].join("\n"),
+    [
+      "Примерные районы:",
+      ...lines,
+      "",
+      "🗺 Карта с метками — нажми кнопку ниже (ссылка ~15 мин). Полный URL:",
+      mapUrl,
+    ].join("\n"),
+    Markup.inlineKeyboard([[Markup.button.url("🗺 Открыть карту", mapUrl)]]),
   );
 }

@@ -3,7 +3,7 @@ export const BOT_COMMANDS = [
   { command: "help", description: "Список команд" },
   { command: "ride", description: "Начать поездку" },
   { command: "stop", description: "Завершить поездку" },
-  { command: "who", description: "Кто сейчас катается" },
+  { command: "who", description: "Кто катается + карта" },
   { command: "where", description: "Где участники + ссылка на карту" },
   { command: "near", description: "Кто рядом + карта в браузере" },
   { command: "status", description: "Мой статус поездки" },

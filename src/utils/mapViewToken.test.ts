@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { signMapViewPayload, verifyMapViewToken } from "./mapViewToken.js";
+import { buildMapPageUrl, signMapViewPayload, verifyMapViewToken } from "./mapViewToken.js";
 
 const secret = "x".repeat(32);
 
@@ -34,5 +34,13 @@ describe("mapViewToken", () => {
   it("rejects wrong secret", () => {
     const t = signMapViewPayload({ mode: "where", groupId: null }, secret);
     expect(verifyMapViewToken(t, "y".repeat(32))).toBeNull();
+  });
+
+  it("buildMapPageUrl embeds verifiable token", () => {
+    const url = buildMapPageUrl("https://example.com", { mode: "where", groupId: null }, secret);
+    const u = new URL(url);
+    const t = u.searchParams.get("t");
+    expect(t).toBeTruthy();
+    expect(verifyMapViewToken(t!, secret)?.mode).toBe("where");
   });
 });

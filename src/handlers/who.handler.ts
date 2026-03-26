@@ -1,7 +1,10 @@
+import { env } from "../config/env.js";
 import { upsertGroupFromChat } from "../services/group.service.js";
 import { listActiveRidesForGroup } from "../services/ride.service.js";
 import { minutesSince } from "../utils/duration.js";
 import { userDisplayName } from "../utils/display.js";
+import { buildMapPageUrl } from "../utils/mapViewToken.js";
+import { Markup } from "telegraf";
 import type { MotobroContext } from "../types/bot.js";
 
 export async function handleWho(ctx: MotobroContext): Promise<void> {
@@ -25,5 +28,16 @@ export async function handleWho(ctx: MotobroContext): Promise<void> {
     return `• ${name} — ${zone} — ${mins} мин`;
   });
 
-  await ctx.reply(["Сейчас катаются:", ...lines].join("\n"));
+  const mapUrl = buildMapPageUrl(env.WEBHOOK_URL, { mode: "where", groupId }, env.TELEGRAM_WEBHOOK_SECRET);
+
+  await ctx.reply(
+    [
+      "Сейчас катаются:",
+      ...lines,
+      "",
+      "🗺 Те же точки на карте (как в /where). Ссылка ~15 мин:",
+      mapUrl,
+    ].join("\n"),
+    Markup.inlineKeyboard([[Markup.button.url("🗺 Открыть карту", mapUrl)]]),
+  );
 }

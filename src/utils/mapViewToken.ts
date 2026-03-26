@@ -34,6 +34,13 @@ export function signMapViewPayload(data: MapViewPayloadSign, secret: string): st
   return `${body}.${sig}`;
 }
 
+/** Полный URL страницы карты (HTTPS, путь /map/rides). */
+export function buildMapPageUrl(baseUrl: string, data: MapViewPayloadSign, secret: string): string {
+  const token = signMapViewPayload(data, secret);
+  const base = baseUrl.replace(/\/$/, "");
+  return `${base}/map/rides?t=${encodeURIComponent(token)}`;
+}
+
 export function verifyMapViewToken(token: string, secret: string): MapViewPayload | null {
   const dot = token.indexOf(".");
   if (dot <= 0) return null;
