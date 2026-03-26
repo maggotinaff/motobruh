@@ -14,7 +14,8 @@ services:
     plan: free
     region: frankfurt
     buildCommand: npm ci && npm run build && npx prisma migrate deploy
-    startCommand: npm start
+    # migrate deploy на старте — тот же DATABASE_URL, что у приложения (устраняет рассинхрон build/runtime/другой БД)
+    startCommand: npm run start:render
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
