@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RideStatus {
+  PENDING
+  ACTIVE
+  STOPPED
+  EXPIRED
+}
+
+model User {
+  id             String   @id @default(cuid())
+  telegramUserId BigInt   @unique
+  username       String?
+  firstName      String?
+  lastName       String?
+  displayName    String
+  lastKnownLatitude   Float?
+  lastKnownLongitude  Float?
+  lastKnownAt         DateTime?
+  lastKnownZone       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  settings   UserSettings?
+  rideSessions RideSession[]
+}
+
+model Group {
+  id             String   @id @default(cuid())
+  telegramChatId BigInt   @unique
+  title          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  settings     GroupSettings?
+  rideSessions RideSession[]
+}
+
+model RideSession {
+  id               String      @id @default(cuid())
+  userId           String
+  groupId          String?
+  status           RideStatus  @default(PENDING)
+  startedAt        DateTime    @default(now())
+  endedAt          DateTime?
+  plannedDurationMin Int?
+  lastLatitude     Float?
+  lastLongitude    Float?
+  lastZone         String?
+  lastLocationAt   DateTime?
+  isJoinable       Boolean     @default(true)
+  rideNote         String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([groupId, status])
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  nearRadiusKm          Float    @default(5)
+  notifyNearbyRides     Boolean  @default(false)
+  shareExactLocation    Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroupSettings {
+  id                       String   @id @default(cuid())
+  groupId                  String   @unique
+  defaultNearRadiusKm      Float    @default(5)
+  showExactLocation        Boolean  @default(false)
+  inactivityTimeoutMin     Int      @default(15)
+  zoneAnnouncementsEnabled Boolean  @default(true)
+  rideAnnouncementsEnabled Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model LocationCache {
+  id         String   @id @default(cuid())
+  latRounded Float
+  lngRounded Float
+  zoneName   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([latRounded, lngRounded])
+}

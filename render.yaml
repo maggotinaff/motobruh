@@ -1,0 +1,37 @@
+# Blueprint для Render: веб-сервис + Postgres (подправь имена под себя)
+version: "1"
+
+databases:
+  - name: motobro-db
+    plan: free
+    databaseName: motobro
+    user: motobro
+
+services:
+  - type: web
+    name: motobro-bot
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm run build && npx prisma migrate deploy
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: motobro-db
+          property: connectionString
+      - key: BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      - key: DISABLE_REVERSE_GEOCODING
+        value: "false"
+      - key: NOMINATIM_BASE_URL
+        value: https://nominatim.openstreetmap.org
+      - key: LOG_LEVEL
+        value: info
+      # WEBHOOK_URL можно добавить вручную как https://<имя-сервиса>.onrender.com
+      # Если не задан, приложение возьмёт RENDER_EXTERNAL_URL (Render задаёт сам)
