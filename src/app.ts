@@ -10,9 +10,10 @@ export function createApp() {
   app.use(healthRouter);
 
   const bot = createBot();
+  // Путь в webhookCallback должен совпадать с req.url внутри mount: Express даёт "/" для POST /telegram/webhook
   app.use(
     "/telegram/webhook",
-    bot.webhookCallback("/telegram/webhook", {
+    bot.webhookCallback("/", {
       secretToken: env.TELEGRAM_WEBHOOK_SECRET,
     }),
   );
