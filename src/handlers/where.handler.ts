@@ -1,6 +1,8 @@
+import { env } from "../config/env.js";
 import { upsertGroupFromChat } from "../services/group.service.js";
 import { listActiveRidesForGroup } from "../services/ride.service.js";
 import { userDisplayName } from "../utils/display.js";
+import { signMapViewPayload } from "../utils/mapViewToken.js";
 import type { MotobroContext } from "../types/bot.js";
 
 export async function handleWhere(ctx: MotobroContext): Promise<void> {
@@ -23,5 +25,11 @@ export async function handleWhere(ctx: MotobroContext): Promise<void> {
     return `• ${name} — ${zone}`;
   });
 
-  await ctx.reply(["Примерные районы:", ...lines].join("\n"));
+  const mapToken = signMapViewPayload({ mode: "where", groupId }, env.TELEGRAM_WEBHOOK_SECRET);
+  const base = env.WEBHOOK_URL.replace(/\/$/, "");
+  const mapUrl = `${base}/map/rides?t=${encodeURIComponent(mapToken)}`;
+
+  await ctx.reply(
+    ["Примерные районы:", ...lines, "", `🗺 На карте (откроется в браузере, ~15 мин):`, mapUrl].join("\n"),
+  );
 }

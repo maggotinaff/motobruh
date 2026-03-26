@@ -1,3 +1,4 @@
+import { env } from "../config/env.js";
 import { upsertGroupFromChat } from "../services/group.service.js";
 import { ensureGroupSettings, ensureUserSettings } from "../services/settings.service.js";
 import {
@@ -7,6 +8,7 @@ import {
 import { formatKm } from "../utils/distance.js";
 import { userDisplayName } from "../utils/display.js";
 import { isValidCoordinates } from "../utils/geo.js";
+import { signMapViewPayload } from "../utils/mapViewToken.js";
 import type { MotobroContext } from "../types/bot.js";
 
 function clampRadiusKm(km: number, fallback: number): number {
@@ -76,5 +78,21 @@ export async function handleNear(ctx: MotobroContext): Promise<void> {
   }
 
   const lines = nearby.map((n) => `• ${userDisplayName(n.ride.user)} — ${formatKm(n.km)}`);
-  await ctx.reply(["Рядом с тобой:", ...lines].join("\n"));
+  const mapToken = signMapViewPayload(
+    {
+      mode: "near",
+      groupId,
+      requesterUserId: dbUser.id,
+      lat,
+      lng,
+      radiusKm,
+    },
+    env.TELEGRAM_WEBHOOK_SECRET,
+  );
+  const base = env.WEBHOOK_URL.replace(/\/$/, "");
+  const mapUrl = `${base}/map/rides?t=${encodeURIComponent(mapToken)}`;
+
+  await ctx.reply(
+    ["Рядом с тобой:", ...lines, "", `🗺 На карте (круг — твой радиус поиска, ~15 мин):`, mapUrl].join("\n"),
+  );
 }

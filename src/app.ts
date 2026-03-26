@@ -2,12 +2,14 @@ import express from "express";
 import { env } from "./config/env.js";
 import { createBot } from "./bot/bot.js";
 import { healthRouter } from "./api/health.route.js";
+import { mapRouter } from "./api/map.route.js";
 
 export function createApp() {
   const app = express();
   app.disable("x-powered-by");
   app.use(express.json({ limit: "512kb" }));
   app.use(healthRouter);
+  app.use(mapRouter);
 
   const bot = createBot();
   // Путь в webhookCallback должен совпадать с req.url внутри mount: Express даёт "/" для POST /telegram/webhook
