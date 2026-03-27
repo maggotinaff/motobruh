@@ -4,12 +4,9 @@ import { logger } from "../utils/logger.js";
 import { attachUserMiddleware } from "./middleware.js";
 import { BOT_COMMANDS } from "./commands.js";
 import { handleStart } from "../handlers/start.handler.js";
-import { handleHelp } from "../handlers/help.handler.js";
 import { handleRide } from "../handlers/ride.handler.js";
 import { handleStop } from "../handlers/stop.handler.js";
 import { handleWho } from "../handlers/who.handler.js";
-import { handleStatus } from "../handlers/status.handler.js";
-import { handlePrivacy } from "../handlers/privacy.handler.js";
 import { handleSettings } from "../handlers/settings.handler.js";
 import { handleGroupSettings } from "../handlers/groupsettings.handler.js";
 import { handleLocation } from "../handlers/location.handler.js";
@@ -37,12 +34,9 @@ export function createBot(): Telegraf<MotobroContext> {
   });
 
   bot.start(handleStart);
-  bot.help(handleHelp);
   bot.command("ride", handleRide);
   bot.command("stop", handleStop);
   bot.command("who", handleWho);
-  bot.command("status", handleStatus);
-  bot.command("privacy", handlePrivacy);
   bot.command("settings", handleSettings);
   bot.command("groupsettings", handleGroupSettings);
 

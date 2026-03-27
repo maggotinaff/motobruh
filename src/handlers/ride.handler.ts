@@ -7,18 +7,14 @@ import {
 import { rideDurationKeyboard } from "../bot/keyboards.js";
 import type { MotobroContext } from "../types/bot.js";
 
+/** Короткая подпись к инлайн-кнопкам выбора минут (Telegram требует непустой текст). */
+const RIDE_DURATION_PROMPT = "\u200b";
+
 export async function handleRide(ctx: MotobroContext): Promise<void> {
   const dbUser = ctx.state.dbUser;
   if (!dbUser) return;
 
   const chat = ctx.chat;
-  const isGroup = chat?.type === "group" || chat?.type === "supergroup";
-  if (isGroup) {
-    await ctx.reply(
-      "Команда /ride лучше всего работает в личке с ботом — так проще выбрать длительность и отправить live location. Здесь тоже можно продолжить.",
-    );
-  }
-
   const group =
     chat && (chat.type === "group" || chat.type === "supergroup")
       ? await upsertGroupFromChat(chat)
@@ -47,13 +43,7 @@ export async function handleRide(ctx: MotobroContext): Promise<void> {
     return;
   }
 
-  await ctx.reply(
-    [
-      "Выбери, на сколько минут планируешь делиться live location в Telegram.",
-      "Это не жёсткий лимит для поездки — просто ориентир для тебя и телефона.",
-    ].join("\n"),
-    rideDurationKeyboard(),
-  );
+  await ctx.reply(RIDE_DURATION_PROMPT, rideDurationKeyboard());
 }
 
 export async function handleRideDurationCallback(
@@ -91,10 +81,5 @@ export async function handleRideDurationCallback(
   });
 
   await ctx.answerCbQuery(`Выбрано: ${minutes} мин`).catch(() => {});
-  await ctx.reply(
-    [
-      "Теперь отправь live location через Telegram на выбранное время.",
-      "Так бот сможет понимать, что ты в пути, без постоянного GPS-трекинга в фоне.",
-    ].join("\n"),
-  );
+  await ctx.reply("Отправь live location в Telegram (кнопка «прикрепить» → Location → Live).");
 }
