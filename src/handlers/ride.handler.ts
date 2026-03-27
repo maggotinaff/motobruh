@@ -8,7 +8,7 @@ import { rideDurationKeyboard } from "../bot/keyboards.js";
 import type { MotobroContext } from "../types/bot.js";
 
 /** Короткая подпись к инлайн-кнопкам выбора минут (Telegram требует непустой текст). */
-const RIDE_DURATION_PROMPT = "\u200b";
+const RIDE_DURATION_PROMPT = "Выбери длительность:";
 
 export async function handleRide(ctx: MotobroContext): Promise<void> {
   const dbUser = ctx.state.dbUser;
