@@ -4,7 +4,6 @@ export const BOT_COMMANDS = [
   { command: "ride", description: "Начать поездку" },
   { command: "stop", description: "Завершить поездку" },
   { command: "who", description: "Кто катается + карта" },
-  { command: "where", description: "Где участники + ссылка на карту" },
   { command: "status", description: "Мой статус поездки" },
   { command: "privacy", description: "Какие данные хранятся" },
   { command: "settings", description: "Личные настройки" },

@@ -2,10 +2,10 @@ import crypto from "crypto";
 
 const TTL_SEC = 15 * 60;
 
-/** Полезная нагрузка токена карты (без exp). */
-export type MapViewPayloadSign = { groupId: string | null };
+/** Полезная нагрузка токена карты (без exp). viewerUserId — кто открыл ссылку (показать его точку, если не в поездке). */
+export type MapViewPayloadSign = { groupId: string | null; viewerUserId: string | null };
 
-export type MapViewPayload = { exp: number; groupId: string | null };
+export type MapViewPayload = { exp: number; groupId: string | null; viewerUserId: string | null };
 
 export function signMapViewPayload(data: MapViewPayloadSign, secret: string): string {
   const exp = Math.floor(Date.now() / 1000) + TTL_SEC;
@@ -45,5 +45,12 @@ export function verifyMapViewToken(token: string, secret: string): MapViewPayloa
   const rec = parsed as Record<string, unknown>;
   if (typeof rec.exp !== "number" || rec.exp < Math.floor(Date.now() / 1000)) return null;
   if (!("groupId" in rec) || (rec.groupId !== null && typeof rec.groupId !== "string")) return null;
-  return { exp: rec.exp, groupId: rec.groupId as string | null };
+  if (!("viewerUserId" in rec) || (rec.viewerUserId !== null && typeof rec.viewerUserId !== "string")) {
+    return null;
+  }
+  return {
+    exp: rec.exp,
+    groupId: rec.groupId as string | null,
+    viewerUserId: rec.viewerUserId as string | null,
+  };
 }

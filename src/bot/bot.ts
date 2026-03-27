@@ -8,7 +8,6 @@ import { handleHelp } from "../handlers/help.handler.js";
 import { handleRide } from "../handlers/ride.handler.js";
 import { handleStop } from "../handlers/stop.handler.js";
 import { handleWho } from "../handlers/who.handler.js";
-import { handleWhere } from "../handlers/where.handler.js";
 import { handleStatus } from "../handlers/status.handler.js";
 import { handlePrivacy } from "../handlers/privacy.handler.js";
 import { handleSettings } from "../handlers/settings.handler.js";
@@ -42,7 +41,6 @@ export function createBot(): Telegraf<MotobroContext> {
   bot.command("ride", handleRide);
   bot.command("stop", handleStop);
   bot.command("who", handleWho);
-  bot.command("where", handleWhere);
   bot.command("status", handleStatus);
   bot.command("privacy", handlePrivacy);
   bot.command("settings", handleSettings);
