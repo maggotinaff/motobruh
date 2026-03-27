@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
-import { findNearbyActiveRiders, listActiveRidesForGroup } from "../services/ride.service.js";
+import { listActiveRidesForGroup } from "../services/ride.service.js";
 import { userDisplayName } from "../utils/display.js";
 import { verifyMapViewToken } from "../utils/mapViewToken.js";
 
@@ -10,47 +10,20 @@ mapRouter.get("/map/rides", async (req, res) => {
   const token = typeof req.query.t === "string" ? req.query.t : "";
   const payload = verifyMapViewToken(token, env.TELEGRAM_WEBHOOK_SECRET);
   if (!payload) {
-    res.status(403).type("text/plain; charset=utf-8").send("Ссылка недействительна или истекла. Запроси /where или /near в боте снова.");
+    res.status(403).type("text/plain; charset=utf-8").send("Ссылка недействительна или истекла. Запроси /where или /who в боте снова.");
     return;
   }
 
-  type Point = { lat: number; lng: number; label: string };
-  let points: Point[] = [];
-  let nearCircle: { lat: number; lng: number; radiusM: number } | null = null;
+  const rides = await listActiveRidesForGroup(payload.groupId);
+  const points = rides
+    .filter((r) => r.lastLatitude != null && r.lastLongitude != null)
+    .map((r) => ({
+      lat: r.lastLatitude!,
+      lng: r.lastLongitude!,
+      label: userDisplayName(r.user),
+    }));
 
-  if (payload.mode === "where") {
-    const rides = await listActiveRidesForGroup(payload.groupId);
-    points = rides
-      .filter((r) => r.lastLatitude != null && r.lastLongitude != null)
-      .map((r) => ({
-        lat: r.lastLatitude!,
-        lng: r.lastLongitude!,
-        label: userDisplayName(r.user),
-      }));
-  } else {
-    const nearby = await findNearbyActiveRiders({
-      requesterUserId: payload.requesterUserId,
-      lat: payload.lat,
-      lng: payload.lng,
-      radiusKm: payload.radiusKm,
-      groupId: payload.groupId,
-    });
-    points = [
-      { lat: payload.lat, lng: payload.lng, label: "Ты" },
-      ...nearby.map((n) => ({
-        lat: n.ride.lastLatitude!,
-        lng: n.ride.lastLongitude!,
-        label: userDisplayName(n.ride.user),
-      })),
-    ];
-    nearCircle = {
-      lat: payload.lat,
-      lng: payload.lng,
-      radiusM: Math.max(50, payload.radiusKm * 1000),
-    };
-  }
-
-  const dataJson = JSON.stringify({ points, nearCircle });
+  const dataJson = JSON.stringify({ points });
   const html = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -84,15 +57,6 @@ mapRouter.get("/map/rides", async (req, res) => {
       m.bindPopup(esc(p.label));
       markers.push(m);
     });
-    if (DATA.nearCircle) {
-      L.circle([DATA.nearCircle.lat, DATA.nearCircle.lng], {
-        radius: DATA.nearCircle.radiusM,
-        color: '#3388ff',
-        fillColor: '#3388ff',
-        fillOpacity: 0.08,
-        weight: 2,
-      }).addTo(map);
-    }
     if (markers.length === 0) {
       map.setView([55.75, 37.62], 4);
     } else if (markers.length === 1) {

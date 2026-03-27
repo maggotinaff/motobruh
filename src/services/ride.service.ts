@@ -2,7 +2,6 @@ import { Prisma, RideStatus } from "@prisma/client";
 import { prisma } from "../db/prisma.js";
 import { ensureGroupSettings } from "./settings.service.js";
 import { resolveZoneLabel } from "./geocoding.service.js";
-import { haversineKm } from "../utils/distance.js";
 import { isValidCoordinates } from "../utils/geo.js";
 
 export async function getActiveRideForUser(userId: string) {
@@ -284,29 +283,6 @@ export async function applyLocationUpdate(input: {
     }
     throw e;
   }
-}
-
-export async function findNearbyActiveRiders(input: {
-  requesterUserId: string;
-  lat: number;
-  lng: number;
-  radiusKm: number;
-  groupId: string | null;
-}) {
-  const rides = await listActiveRidesForGroup(input.groupId);
-  const others = rides.filter(
-    (r) =>
-      r.userId !== input.requesterUserId &&
-      r.lastLatitude != null &&
-      r.lastLongitude != null,
-  );
-  return others
-    .map((r) => ({
-      ride: r,
-      km: haversineKm(input.lat, input.lng, r.lastLatitude!, r.lastLongitude!),
-    }))
-    .filter((x) => x.km <= input.radiusKm && x.km > 0)
-    .sort((a, b) => a.km - b.km);
 }
 
 export async function clearUserLocationSnapshot(userId: string) {

@@ -26,7 +26,7 @@ export async function handleWhere(ctx: MotobroContext): Promise<void> {
     return `• ${name} — ${zone}`;
   });
 
-  const mapUrl = buildMapPageUrl(env.WEBHOOK_URL, { mode: "where", groupId }, env.TELEGRAM_WEBHOOK_SECRET);
+  const mapUrl = buildMapPageUrl(env.WEBHOOK_URL, { groupId }, env.TELEGRAM_WEBHOOK_SECRET);
 
   await ctx.reply(
     [

@@ -2,33 +2,14 @@ import crypto from "crypto";
 
 const TTL_SEC = 15 * 60;
 
-export type MapViewPayload =
-  | { mode: "where"; exp: number; groupId: string | null }
-  | {
-      mode: "near";
-      exp: number;
-      groupId: string | null;
-      requesterUserId: string;
-      lat: number;
-      lng: number;
-      radiusKm: number;
-    };
+/** Полезная нагрузка токена карты (без exp). */
+export type MapViewPayloadSign = { groupId: string | null };
 
-/** Данные без exp — подпись добавляет срок действия */
-export type MapViewPayloadSign =
-  | { mode: "where"; groupId: string | null }
-  | {
-      mode: "near";
-      groupId: string | null;
-      requesterUserId: string;
-      lat: number;
-      lng: number;
-      radiusKm: number;
-    };
+export type MapViewPayload = { exp: number; groupId: string | null };
 
 export function signMapViewPayload(data: MapViewPayloadSign, secret: string): string {
   const exp = Math.floor(Date.now() / 1000) + TTL_SEC;
-  const full = { ...data, exp } as MapViewPayload;
+  const full: MapViewPayload = { ...data, exp };
   const body = Buffer.from(JSON.stringify(full), "utf8").toString("base64url");
   const sig = crypto.createHmac("sha256", secret).update(body).digest("base64url");
   return `${body}.${sig}`;
@@ -63,30 +44,6 @@ export function verifyMapViewToken(token: string, secret: string): MapViewPayloa
   if (!parsed || typeof parsed !== "object") return null;
   const rec = parsed as Record<string, unknown>;
   if (typeof rec.exp !== "number" || rec.exp < Math.floor(Date.now() / 1000)) return null;
-  if (rec.mode === "where") {
-    if (!("groupId" in rec) || (rec.groupId !== null && typeof rec.groupId !== "string")) return null;
-    return { mode: "where", exp: rec.exp, groupId: rec.groupId as string | null };
-  }
-  if (rec.mode === "near") {
-    if (
-      !("groupId" in rec) ||
-      (rec.groupId !== null && typeof rec.groupId !== "string") ||
-      typeof rec.requesterUserId !== "string" ||
-      typeof rec.lat !== "number" ||
-      typeof rec.lng !== "number" ||
-      typeof rec.radiusKm !== "number"
-    ) {
-      return null;
-    }
-    return {
-      mode: "near",
-      exp: rec.exp,
-      groupId: rec.groupId as string | null,
-      requesterUserId: rec.requesterUserId,
-      lat: rec.lat,
-      lng: rec.lng,
-      radiusKm: rec.radiusKm,
-    };
-  }
-  return null;
+  if (!("groupId" in rec) || (rec.groupId !== null && typeof rec.groupId !== "string")) return null;
+  return { exp: rec.exp, groupId: rec.groupId as string | null };
 }

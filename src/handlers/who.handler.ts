@@ -28,7 +28,7 @@ export async function handleWho(ctx: MotobroContext): Promise<void> {
     return `• ${name} — ${zone} — ${mins} мин`;
   });
 
-  const mapUrl = buildMapPageUrl(env.WEBHOOK_URL, { mode: "where", groupId }, env.TELEGRAM_WEBHOOK_SECRET);
+  const mapUrl = buildMapPageUrl(env.WEBHOOK_URL, { groupId }, env.TELEGRAM_WEBHOOK_SECRET);
 
   await ctx.reply(
     [

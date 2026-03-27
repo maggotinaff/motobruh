@@ -22,9 +22,7 @@ export async function handleCallbackQuery(ctx: MotobroContext): Promise<void> {
 
     if (data.startsWith("set:")) {
       const p = data.split(":");
-      if (p[1] === "near" && p[2]) {
-        await handleSettingsCallback(ctx, "near", p[2]);
-      } else if (p[1] === "exact" && p[2] === "toggle") {
+      if (p[1] === "exact" && p[2] === "toggle") {
         await handleSettingsCallback(ctx, "exact");
       } else if (p[1] === "clearpoint") {
         await handleSettingsCallback(ctx, "clearpoint");

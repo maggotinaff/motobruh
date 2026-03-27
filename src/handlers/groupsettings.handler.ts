@@ -31,7 +31,6 @@ export async function handleGroupSettings(ctx: MotobroContext): Promise<void> {
   await ctx.reply(
     [
       "Настройки группы:",
-      `• Радиус «рядом» по умолчанию: ${gs.defaultNearRadiusKm} км`,
       `• Таймаут неактивности: ${gs.inactivityTimeoutMin} мин`,
       `• Объявления о поездках: ${gs.rideAnnouncementsEnabled ? "вкл" : "выкл"}`,
       `• Объявления о районе (тексты с зоной): ${gs.zoneAnnouncementsEnabled ? "вкл" : "выкл"}`,
@@ -62,18 +61,7 @@ export async function handleGroupSettingsCallback(ctx: MotobroContext, data: str
   const kind = parts[1];
   const raw = parts[2];
 
-  if (kind === "near" && raw) {
-    const km = Number(raw);
-    if (![3, 5, 10].includes(km)) {
-      await ctx.answerCbQuery("Неверное значение").catch(() => {});
-      return;
-    }
-    await prisma.groupSettings.update({
-      where: { groupId: g.id },
-      data: { defaultNearRadiusKm: km },
-    });
-    await ctx.answerCbQuery(`Радиус по умолчанию: ${km} км`).catch(() => {});
-  } else if (kind === "timeout" && raw) {
+  if (kind === "timeout" && raw) {
     const min = Number(raw);
     if (![10, 15, 30].includes(min)) {
       await ctx.answerCbQuery("Неверное значение").catch(() => {});
@@ -106,7 +94,6 @@ export async function handleGroupSettingsCallback(ctx: MotobroContext, data: str
     ctx,
     [
       "Настройки группы:",
-      `• Радиус «рядом» по умолчанию: ${next.defaultNearRadiusKm} км`,
       `• Таймаут неактивности: ${next.inactivityTimeoutMin} мин`,
       `• Объявления о поездках: ${next.rideAnnouncementsEnabled ? "вкл" : "выкл"}`,
       `• Объявления о районе (тексты с зоной): ${next.zoneAnnouncementsEnabled ? "вкл" : "выкл"}`,
